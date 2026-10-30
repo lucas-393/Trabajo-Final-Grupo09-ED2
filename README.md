@@ -1,34 +1,46 @@
-TRABAJO PRÁCTICO FINAL – ELECTRÓNICA DIGITAL II
+# TRABAJO PRÁCTICO FINAL – ELECTRÓNICA DIGITAL II
 
-Batalla Naval: Sistema de Juego Electrónico con Comunicación entre Microcontroladores
+## Sistema Electrónico de Juego "Batalla Naval" con Comunicación Inter-Microcontrolador
 
-Asignatura: Electrónica Digital II – FCEFyN, UNC
-Integrantes: Grupo 09
-Microcontrolador: PIC16F887
-Lenguaje: Ensamblador (ASM)
-Entorno de desarrollo: MPLAB X IDE
+Este proyecto comprende el diseño, desarrollo e implementación de un sistema embebido de lógica distribuida basado en dos microcontroladores independientes. El sistema emula el juego clásico de Batalla Naval, permitiendo el desarrollo de una partida en tiempo real mediante dos consolas de juego interconectadas.
 
-Descripción del proyecto
+---
 
-El presente proyecto consiste en el diseño e implementación de un sistema electrónico basado en dos microcontroladores PIC16F887, que permite desarrollar una partida del clásico juego Batalla Naval mediante dos consolas independientes.
+### Especificaciones Generales
 
-Cada consola administra un tablero de juego de 8 × 8 posiciones, permite realizar la selección de coordenadas mediante potenciómetros y gestionar las acciones del jugador a través de pulsadores. La comunicación entre ambas unidades se realiza mediante el módulo de comunicación serial asíncrona (EUSART), permitiendo transmitir los ataques y recibir las respuestas correspondientes.
+* **Asignatura:** Electrónica Digital II – FCEFyN, UNC
+* **Integrantes:** Grupo 09
+* **Plataforma de Hardware:** Microcontrolador PIC16F887 (Microchip)
+* **Lenguaje de Programación:** Ensamblador (ASM)
+* **Entorno de Desarrollo:** MPLAB X IDE
 
-El sistema incorpora conversión analógica-digital (ADC) para la lectura de las coordenadas, matrices LED controladas mediante el integrado MAX7219 para la visualización del tablero, interrupciones externas para la detección de acciones del usuario y temporizadores para la gestión de eventos del juego.
+---
+## 1. Descripción del Proyecto
 
-El firmware será desarrollado en lenguaje Ensamblador (ASM), utilizando el microcontrolador PIC16F887.
-## Índice
+El sistema consta de dos unidades de control o consolas independientes. Cada terminal administra una matriz de juego de 8 × 8 posiciones, procesa la entrada analógica de periféricos de control (potenciómetros para la selección de coordenadas) y gestiona los comandos de entrada del usuario mediante pulsadores. 
 
-- [Descripción del proyecto](#descripción-del-proyecto)
-- [Estructura del repositorio](#estructura-del-repositorio)
-- [Alcance del proyecto (Historias de Usuario)](#alcance-del-proyecto-historias-de-usuario)
-- [Arquitectura del sistema: hardware y software](#arquitectura-del-sistema-hardware-y-software)
-  - [Diagrama de bloques](#diagrama-de-bloques)
-  - [Esquemático del circuito](#esquemático-del-circuito)
-  - [Diagrama de flujo](#diagrama-de-flujo)
-- [Definición de Terminado (DoD)](#definición-de-terminado-dod)
-- [Instrucciones de Simulación](#instrucciones-de-simulación)
-## Alcance del proyecto (Historias de Usuario)
+La sincronización de datos y la transferencia de eventos entre ambas consolas se realiza mediante el módulo de comunicación serial asíncrona (EUSART) nativo del microcontrolador, estableciendo un esquema de transmisión de ataques y recepción de estados de juego.
+
+Para cumplir con los requerimientos funcionales, el diseño integra los siguientes módulos del periférico:
+* **Conversión Analógico-Digital (ADC):** Para la digitalización de las coordenadas de juego.
+* **Controladores de Matriz LED (MAX7219):** Para la visualización dinámica del tablero de juego.
+* **Interrupciones Externas e Internas:** Para la captura inmediata de las acciones del usuario y el control de tiempos (vía Timer0/Timer1) en animaciones y generación de señales acústicas.
+
+El firmware está desarrollado en su totalidad en lenguaje Ensamblador (ASM) optimizado para la arquitectura del PIC16F887.
+
+---
+## 2. Índice
+
+- [1. Descripción del Proyecto](#1-descripción-del-proyecto)
+- [3. Alcance del Proyecto (Historias de Usuario)](#3-alcance-del-proyecto-historias-de-usuario)
+- [4. Estructura del Repositorio](#4-estructura-del-repositorio)
+- [5. Arquitectura del Sistema: Hardware y Software](#5-arquitectura-del-sistema-hardware-y-software)
+  - [5.1. Diagrama de Bloques](#51-diagrama-de-bloques)
+  - [5.2. Esquemático del Circuito](#52-esquemático-del-circuito)
+  - [5.3. Diagrama de Flujo](#53-diagrama-de-flujo)
+- [6. Definición de Terminado (DoD)](#6-definición-de-terminado-dod)
+- [7. Instrucciones de Simulación](#7-instrucciones-de-simulación)
+## 3. Alcance del Proyecto (Historias de Usuario)
 
 El sistema está diseñado para permitir el desarrollo de una partida de Batalla Naval entre dos jugadores, mediante dos consolas electrónicas independientes basadas en microcontroladores PIC16F887. El funcionamiento se organiza en dos fases principales: posicionamiento de las embarcaciones y desarrollo de los turnos de ataque y defensa.
 
@@ -68,3 +80,16 @@ El sistema está diseñado para permitir el desarrollo de una partida de Batalla
 - Las dos unidades intercambian información mediante comunicación serial bidireccional EUSART.
 - Se utiliza un protocolo de tramas de un byte para transmitir coordenadas de ataque, resultados y señales de sincronización.
 - Los mensajes permiten comunicar los estados AGUA, TOCADO y HUNDIDO, además de las señales de consola lista y cambio de turno.
+---
+## 4. Estructura del Repositorio
+
+La organización de los directorios y componentes de software del proyecto se estructura de la siguiente manera:
+
+* `README.md`: Documentación técnica general, especificaciones funcionales, alcance y descripción de la arquitectura del sistema.
+* `src/`: Directorio raíz que aloja el código fuente desarrollado en lenguaje Ensamblador (ASM) para las unidades de control.
+  * `main.asm`: Módulo principal del firmware encargado de la inicialización global y la coordinación de los estados del juego.
+  * `configuracion.asm`: Archivo de asignación de directivas, palabras de configuración del microcontrolador y parametrización de registros iniciales.
+  * `modulos/`: Subdirectorio de librerías y subrutinas específicas (conversión ADC, control de periféricos MAX7219, rutinas de servicio de interrupción y protocolos de comunicación EUSART).
+* `sim/`: Contiene los archivos de simulación del circuito embebido en entornos virtuales (Proteus), estructurados por módulos de consola y escenarios de integración.
+* `docs/`: Repositorio de documentación técnica complementaria, diagramas de bloques, diagramas de flujo de algoritmos, diagramas esquemáticos y tablas de conexiones del hardware.
+* `pruebas/`: Aloja los programas de testeo unitario para la validación individual de periféricos y los scripts de verificación de integración del sistema de juego.
