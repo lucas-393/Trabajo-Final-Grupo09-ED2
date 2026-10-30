@@ -30,40 +30,41 @@ El firmware será desarrollado en lenguaje Ensamblador (ASM), utilizando el micr
 - [Instrucciones de Simulación](#instrucciones-de-simulación)
 ## Alcance del proyecto (Historias de Usuario)
 
-El sistema está diseñado para permitir el desarrollo de una partida de Batalla Naval entre dos jugadores, utilizando dos consolas electrónicas independientes que intercambian información mediante comunicación serial.
+El sistema está diseñado para permitir el desarrollo de una partida de Batalla Naval entre dos jugadores, mediante dos consolas electrónicas independientes basadas en microcontroladores PIC16F887. El funcionamiento se organiza en dos fases principales: posicionamiento de las embarcaciones y desarrollo de los turnos de ataque y defensa.
 
-Las funcionalidades principales se organizan de la siguiente manera:
+**1. Posicionamiento y configuración de la flota:**
 
-**1. Configuración y preparación del tablero:**
+- Cada jugador dispone de una matriz de juego de 8 × 8 posiciones.
+- La selección de coordenadas se realiza mediante dos potenciómetros lineales conectados a los canales AN0 y AN1 del microcontrolador.
+- El jugador dispone de tres embarcaciones de longitudes 2, 3 y 4 casillas.
+- Cada embarcación se identifica mediante un ID numérico único, almacenado en una matriz de RAM de 8 × 8.
+- El sistema verifica la contigüidad de las posiciones correspondientes a cada embarcación y evita la superposición de barcos.
+- Se mantiene un arreglo de puntos de salud asociado a cada embarcación, según su longitud.
 
-- Cada jugador dispone de un tablero de 8 × 8 posiciones.
-- El sistema permite seleccionar las coordenadas de ubicación de los barcos mediante dos potenciómetros, correspondientes a los ejes X e Y.
-- Cada jugador debe ubicar una flota compuesta por tres barcos de diferentes longitudes: 2, 3 y 4 posiciones.
-- El sistema debe verificar que las posiciones seleccionadas sean válidas, evitando superposiciones y ubicaciones fuera de los límites del tablero.
+**2. Desarrollo de los turnos de ataque y defensa:**
 
-**2. Selección y ejecución de ataques:**
+- Una vez finalizado el posicionamiento, ambas consolas sincronizan su estado mediante comunicación serial EUSART.
+- Durante el modo de ataque, el jugador selecciona una coordenada mediante los potenciómetros y confirma el disparo utilizando el pulsador conectado a RB0/INT.
+- La consola transmite la coordenada del ataque a la unidad contraria y pasa al modo de defensa.
+- Durante el modo de defensa, la matriz LED cambia su visualización para mostrar la ubicación de los barcos propios y la consola queda a la espera de un ataque entrante.
 
-- Durante la partida, el jugador puede seleccionar una coordenada del tablero contrario mediante los potenciómetros.
-- Un pulsador permite confirmar el ataque sobre la posición seleccionada.
-- La coordenada elegida se transmite a la otra consola mediante comunicación serial UART.
-- El sistema debe impedir que se realicen ataques repetidos sobre una misma posición.
+**3. Procesamiento y resolución de impactos:**
 
-**3. Recepción y procesamiento de ataques:**
+- Al recibir una coordenada, el microcontrolador consulta la matriz de posiciones almacenada en RAM para determinar si el ataque impactó sobre una embarcación o sobre una casilla de agua.
+- Cuando se produce un impacto sobre un barco, se decrementa su cantidad de puntos de salud.
+- Si el barco conserva puntos de salud, el sistema informa el resultado como **TOCADO**.
+- Cuando los puntos de salud llegan a cero, el sistema informa el resultado como **HUNDIDO**.
+- Si la posición atacada no contiene una embarcación, el resultado se informa como **AGUA**.
 
-- Cada consola recibe las coordenadas de los ataques enviados por el oponente.
-- El microcontrolador verifica la posición recibida consultando la información almacenada en la memoria RAM.
-- Según el resultado, el sistema determina si el ataque corresponde a agua o a un barco.
-- Cuando un barco recibe un impacto, se actualiza su estado. Si todas sus posiciones fueron alcanzadas, se informa que ha sido hundido.
-- La consola transmite al oponente el resultado del ataque.
+**4. Visualización y señalización de eventos:**
 
-**4. Visualización y señalización:**
+- La representación del tablero se realiza mediante una matriz LED de 8 × 8 controlada por el integrado MAX7219.
+- El Timer0 o Timer1 genera interrupciones periódicas para controlar animaciones, como el parpadeo del cursor de selección y la señalización de impactos.
+- Los indicadores luminosos permiten identificar los diferentes eventos: LED verde para el turno del jugador, azul para agua, amarillo para tocado y rojo para hundido.
+- Un buzzer activo de 5 V, accionado mediante un transistor NPN, genera diferentes patrones sonoros según el resultado del ataque.
 
-- Una matriz LED de 8 × 8 controlada mediante el integrado MAX7219 permite visualizar el tablero.
-- El sistema utiliza indicadores luminosos para diferenciar los eventos de la partida, como el turno del jugador, los impactos y los barcos hundidos.
-- Un buzzer proporciona señales acústicas asociadas a determinados eventos del juego.
+**5. Comunicación entre consolas:**
 
-**5. Control de turnos y finalización:**
-
-- Los jugadores alternan sus turnos mediante la comunicación entre ambas consolas.
-- El sistema debe evitar que los dos jugadores ejecuten ataques simultáneamente.
-- La partida finaliza cuando uno de los jugadores consigue hundir la totalidad de los barcos del oponente.
+- Las dos unidades intercambian información mediante comunicación serial bidireccional EUSART.
+- Se utiliza un protocolo de tramas de un byte para transmitir coordenadas de ataque, resultados y señales de sincronización.
+- Los mensajes permiten comunicar los estados AGUA, TOCADO y HUNDIDO, además de las señales de consola lista y cambio de turno.
