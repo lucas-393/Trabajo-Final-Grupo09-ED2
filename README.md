@@ -1,7 +1,7 @@
 # 4 en Línea
 
 **Trabajo Práctico Final · Electrónica Digital II**  
-Facultad de Ciencias Exactas, Físicas y Naturales · Universidad Nacional de Córdoba · Ingeniería Electrónica
+Facultad de Ciencias Exactas, Físicas y Naturales · Universidad Nacional de Córdoba · Ingeniería Electrónica e Ingeniería Biomédica
 
 **Grupo 09**
 
@@ -35,7 +35,7 @@ Las jugadas pueden ingresarse de dos maneras:
 - **Control físico:** un potenciómetro selecciona la columna y un pulsador confirma la jugada.
 - **Control por computadora:** una interfaz gráfica en Python, conectada al PIC por UART, permite mover la selección a izquierda y derecha y confirmar la jugada.
 
-Las fichas del jugador 1 permanecen encendidas y las del jugador 2 parpadean. Dos LED indican de quién es el turno. Cuando alguien gana, un **servomotor SG90** mueve una bandera hacia el lado del ganador y un **buzzer** suena durante aproximadamente 5 segundos.
+Las fichas del jugador 1 permanecen encendidas y las del jugador 2 parpadean. Dos LED indican de quién es el turno. Cuando alguien gana, un **servomotor SG90** mueve una bandera hacia el lado del ganador y un **buzzer** suena durante aproximadamente 2 segundos. Finalizada la señalización la bandera vuelve a su posición central de 90°
 
 El PIC es la única autoridad del sistema: la computadora solo envía comandos y recibe estados, pero nunca decide dónde cae una ficha ni evalúa victorias.
 
@@ -48,8 +48,8 @@ El PIC es la única autoridad del sistema: la computadora solo envía comandos y
 - **Aceptar jugadas desde dos fuentes:** potenciómetro más pulsador, o interfaz Python por UART. El método activo es el de la última entrada que produjo un cambio efectivo en la selección.
 - **Visualizar el tablero** en una matriz LED de 8×8 con el MAX7219 (SPI), diferenciando a los jugadores por ficha fija y ficha parpadeante.
 - **Indicar el turno** mediante dos LED.
-- **Señalizar al ganador** con la bandera del servomotor (0° o 180°) y el buzzer, y volver la bandera a 90° después de unos 5 segundos.
-- **Comunicarse con la PC** por UART: recibe comandos (`L`, `R`, `D`, `Q`) y responde con el turno, la validez de la jugada y el resultado.
+- **Señalizar al ganador** con la bandera del servomotor (0° o 180°) y el buzzer. El buzzer suena durante aproximadamente 2 segundos y luego la bandera vuelve a 90°.
+- **Comunicarse con la PC** por UART: recibe comandos (`L`, `R`, `D`) y envía información sobre el turno, la validez de las jugadas y el resultado.
 
 **El sistema NO es capaz de:**
 
@@ -151,7 +151,9 @@ columna = ADRESH / 37
 
 Para evitar que la selección oscile en los límites entre columnas se puede agregar histéresis o promediar muestras.
 
-#### Timer0: base de tiempo general
+#### Timer0: parpadeo y base de tiempo general
+
+Timer0 se utiliza para generar el parpadeo de las fichas del jugador 2 y como base de tiempo para otras tareas temporizadas del sistema.
 
 Con $F_{osc}=4\text{ MHz}$, el ciclo de instrucción es:
 
@@ -170,10 +172,10 @@ Se utiliza como base de tiempo mediante contadores por software:
 | Tarea | Desbordes | Tiempo resultante |
 |---|---:|---:|
 | Parpadeo del jugador 2 (alternar estado) | 8 | ≈ 524 ms |
-| Señalización del ganador | 76 | ≈ 4,98 s |
-| Antirrebote del pulsador | 1 | ≈ 65 ms |
+| Activación del buzzer | 31 | ≈ 2,03 s |
+| Antirrebote del pulsador | 1 | ≈ 65,5 ms |
 
-Estos tiempos son valores teóricos derivados del desbordamiento de Timer0. La implementación deberá coordinar los contadores para que las distintas tareas temporizadas puedan ejecutarse sin interferirse.
+Esto supone un desbordamiento de Timer0 cada 65,536 ms.
 
 #### Timer1: señal del servomotor SG90
 
@@ -301,7 +303,7 @@ Como el PIC16F887 dispone de un único vector de interrupción, la rutina de ser
 | Prioridad | Fuente | Tarea |
 |---:|---|---|
 | 1 | TMR1IF | Generación del pulso del servomotor |
-| 2 | TMR0IF | Parpadeo, antirrebote y temporización de 5 s |
+| 2 | TMR0IF | Parpadeo del jugador 2, antirrebote y temporización del buzzer 2 s |
 | 3 | INTF (RB0) | Confirmación de jugada por pulsador |
 | 4 | RCIF | Recepción de comandos desde la PC |
 
@@ -329,7 +331,6 @@ Los comandos enviados desde la interfaz de Python son caracteres ASCII terminado
 | `L` | Mover la selección a la izquierda |
 | `R` | Mover la selección a la derecha |
 | `D` | Confirmar la jugada |
-| `Q` | Consultar el estado del juego |
 
 El PIC responde con información sobre el jugador del turno, la aceptación o el rechazo de una jugada y el resultado de la partida.
 
@@ -349,14 +350,12 @@ La interfaz dispone de tres botones:
 
 También muestra el turno actual y el resultado de la partida. La computadora no representa el tablero ni ejecuta las reglas del juego: únicamente permite ingresar comandos y visualizar la información recibida desde el microcontrolador.
 
-El comando `Q` permite consultar el estado actual del juego.
-
 ### 4.6. Finalización de la partida
 
 Cuando el PIC detecta una victoria, determina qué jugador ganó y ejecuta la señalización correspondiente:
 
 - El servomotor mueve la bandera hacia la posición del jugador ganador.
-- El buzzer se activa durante aproximadamente 5 segundos.
+- El buzzer se activa durante aproximadamente 2 segundos.
 - Finalizado ese tiempo, el buzzer se apaga y la bandera vuelve a la posición central de 90°.
 - El juego queda bloqueado y no acepta nuevas jugadas hasta que se realice un reinicio mediante MCLR.
 
@@ -401,7 +400,7 @@ La configuración prevista para el microcontrolador contempla los siguientes bit
 ### 5.4. Periféricos internos utilizados
 
 - **ADC:** canal AN0, justificación izquierda, lectura de `ADRESH`.
-- **Timer0:** prescaler 1:256, base de tiempo para parpadeo, antirrebote y señalización.
+- **Timer0:** prescaler 1:256, base de tiempo para parpadeo del jugador 2, antirrebote y temporización del buzzer.
 - **Timer1:** prescaler 1:1, generación de la señal del servo.
 - **MSSP (SPI maestro):** comunicación con el MAX7219.
 - **EUSART:** modo asíncrono a 9600 baudios (SPBRG = 25, BRGH = 1).
