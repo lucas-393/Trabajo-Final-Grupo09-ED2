@@ -331,7 +331,7 @@ Los comandos enviados desde la interfaz de Python son caracteres ASCII terminado
 | `D` | Confirmar la jugada |
 | `Q` | Consultar el estado del juego |
 
-El PIC responde con información sobre el jugador del turno, la columna seleccionada cuando corresponda, la aceptación o el rechazo de una jugada y el resultado de la partida.
+El PIC responde con información sobre el jugador del turno, la aceptación o el rechazo de una jugada y el resultado de la partida.
 
 **[PENDIENTE: definir el formato exacto de los mensajes de respuesta del PIC y los valores utilizados para representar cada estado].**
 
@@ -372,7 +372,7 @@ En caso de empate, el PIC informa el resultado a través de la comunicación UAR
 | Alimentación PIC + MAX7219 | Fuente de 5 V con corriente suficiente para ambos |
 | Alimentación del servo | Fuente regulada de 5 V independiente |
 | Referencia de masa | GND común entre todos los bloques |
-| Consumo medido | [PENDIENTE: medir durante el funcionamiento] |
+| Consumo medido | [PENDIENTE   |
 
 El consumo del sistema varía con la cantidad de LED encendidos en la matriz, el brillo configurado en el MAX7219 y el movimiento del servomotor.
 
@@ -383,7 +383,6 @@ El consumo del sistema varía con la cantidad de LED encendidos en la matriz, el
 | MPLAB X IDE + MPASM | Desarrollo y ensamblado del firmware |
 | Bootloader AN1310 | Carga del programa en el PIC |
 | Python + PySerial | Interfaz gráfica y comunicación serie |
-| CP2102 | Interfaz USB-UART |
 | Proteus | Simulación del circuito |
 | Git / GitHub | Control de versiones y trabajo colaborativo |
 
@@ -398,8 +397,6 @@ La configuración prevista para el microcontrolador contempla los siguientes bit
 | `_MCLRE_ON` | MCLR habilitado | Permitir el reinicio manual del sistema |
 | `_BOREN_ON` | Brown-out reset habilitado | Reinicio ante caídas de tensión |
 | `_LVP_OFF` | Programación en bajo voltaje deshabilitada | Liberar RB3 y evitar reprogramaciones accidentales |
-
-**[PENDIENTE: verificar que estos valores coincidan con la configuración definitiva del firmware y con los requisitos del bootloader AN1310].**
 
 ### 5.4. Periféricos internos utilizados
 
@@ -424,16 +421,6 @@ El desarrollo del proyecto se organiza en etapas para facilitar la implementaci�
 6. **Comunicación:** UART con comandos y respuestas, e integración de la interfaz de Python.
 7. **Actuadores:** control del servomotor mediante Timer1 y activación del buzzer.
 8. **Integración y pruebas:** ejecución de partidas completas utilizando ambos métodos de control.
-
-### 6.2. Integración del sistema
-
-La integración contempla el funcionamiento conjunto de las entradas, el procesamiento, la visualización y los actuadores.
-
-Se verifica que las jugadas ingresadas por cualquiera de los dos métodos sean procesadas por el PIC, que la matriz represente correctamente el estado del tablero y que los indicadores y actuadores respondan de acuerdo con el estado de la partida.
-
-El seguimiento del desarrollo y de las tareas se gestiona mediante **GitHub Projects**, mientras que el control de versiones del código y la documentación se realiza a través del repositorio.
-
-**[PENDIENTE: completar con las decisiones de integración, dificultades encontradas y soluciones adoptadas durante el desarrollo].**
 
 ## 7. Ensayos, pruebas y resultados
 
@@ -496,5 +483,3 @@ La organización prevista para los archivos del proyecto es la siguiente:
 │   └── imagenes/
 └── .gitignore
 ```
-
-**[PENDIENTE: ajustar esta estructura a los directorios y archivos definitivos del repositorio].**
