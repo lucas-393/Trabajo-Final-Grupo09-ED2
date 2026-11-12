@@ -153,17 +153,17 @@ Para evitar que la selección oscile en los límites entre columnas se puede agr
 
 #### Timer0: base de tiempo general
 
-Con \(F_{osc}=4\text{ MHz}\), el ciclo de instrucción es:
+Con $F_{osc}=4\text{ MHz}$, el ciclo de instrucción es:
 
-\[
+$$
 T_{inst}=\frac{4}{F_{osc}}=1\ \mu s
-\]
+$$
 
 Con prescaler 1:256 y sin precarga, Timer0 desborda cada:
 
-\[
+$$
 T=256\times256\times1\ \mu s=65,536\text{ ms}
-\]
+$$
 
 Se utiliza como base de tiempo mediante contadores por software:
 
@@ -187,9 +187,9 @@ El servo requiere una señal de aproximadamente **50 Hz**, equivalente a un per�
 
 Con prescaler 1:1, el temporizador tiene una resolución de 1 µs. La precarga se calcula mediante:
 
-\[
+$$
 TMR1=65536-\frac{T}{T_{inst}}
-\]
+$$
 
 | Fase | Duración | Precarga (decimal) | TMR1H:TMR1L |
 |---|---:|---:|---|
@@ -199,15 +199,15 @@ TMR1=65536-\frac{T}{T_{inst}}
 
 La fase en bajo completa el período de 20 ms. Por ejemplo, para un pulso de 1,5 ms:
 
-\[
+$$
 T_{bajo}=20\text{ ms}-1,5\text{ ms}=18,5\text{ ms}
-\]
+$$
 
 La precarga correspondiente es:
 
-\[
+$$
 TMR1=65536-18500=47036=0xB7BC
-\]
+$$
 
 La interrupción de Timer1 alterna entre la fase alta y la fase baja, recargando el valor correspondiente para mantener el período de la señal.
 
@@ -215,31 +215,31 @@ La interrupción de Timer1 alterna entre la fase alta y la fase baja, recargando
 
 #### UART: velocidad de transmisión
 
-La comunicación asíncrona se configura a **9600 baudios**, con BRGH = 1 y \(F_{osc}=4\text{ MHz}\).
+La comunicación asíncrona se configura a **9600 baudios**, con BRGH = 1 y $F_{osc}=4\text{ MHz}$.
 
 El valor de SPBRG se calcula mediante:
 
-\[
+$$
 SPBRG=\frac{F_{osc}}{16\cdot Baud}-1
-\]
+$$
 
-\[
+$$
 SPBRG=\frac{4\times10^6}{16\cdot9600}-1=25,04\approx25
-\]
+$$
 
 La velocidad real obtenida es:
 
-\[
+$$
 Baud_{real}=\frac{4\times10^6}{16\cdot(25+1)}
 =9615\text{ bps}
-\]
+$$
 
 El error relativo es:
 
-\[
+$$
 Error=\frac{9615-9600}{9600}\times100
 \approx0,16\%
-\]
+$$
 
 La configuración utiliza 8 bits de datos, sin paridad y un bit de parada (8N1).
 
@@ -247,9 +247,9 @@ La configuración utiliza 8 bits de datos, sin paridad y un bit de parada (8N1).
 
 El módulo MSSP del PIC funciona como maestro SPI con una frecuencia de reloj de:
 
-\[
+$$
 f_{SPI}=\frac{F_{osc}}{4}=1\text{ MHz}
-\]
+$$
 
 Cada transmisión envía 16 bits, correspondientes a una dirección de registro y un dato. La señal CS (RD3) se utiliza para delimitar la transmisión.
 
