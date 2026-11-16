@@ -220,7 +220,7 @@ La interrupción de Timer1 alterna entre la fase alta y la fase baja, recargando
 
 #### UART: velocidad de transmisión
 
-La comunicación asíncrona se configura a **9600 baudios**, con BRGH = 1 y \(F_{osc}=4\text{ MHz}\).
+La comunicación asíncrona se configura a **9600 baudios**, con BRGH = 1 y $$F_{osc}=4\text{ MHz}$$.
 
 El valor de SPBRG se calcula mediante:
 
