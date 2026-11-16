@@ -10,7 +10,8 @@ Facultad de Ciencias Exactas, Físicas y Naturales · Universidad Nacional de C�
 * Curtino Velaz Santiago
 * Guevara Lucas Daniel
 * Ibarra Giovani Emmanuel
-* Soto Debesa Trinidad Zoe  
+* Soto Debesa Trinidad Zoe
+ 
 **Docente:** Ing. Marcos J. Blasco.
 
 ---
