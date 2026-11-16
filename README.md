@@ -27,24 +27,24 @@ Integrantes:
 
 ## 1. Descripción del proyecto
 
-**4 en Línea** es un juego electrónico para dos jugadores basado en un microcontrolador **PIC16F887**. El tablero se representa en una **matriz LED de 8×8** controlada por un **MAX7219**. Se utilizan 7 filas para el área de juego y 8 columnas. La línea restante de la matriz se reserva para indicar la columna seleccionada mediante un cursor. Toda la lógica del juego (reglas, turnos, caída de fichas, detección de victoria y empate) se ejecuta en el PIC, programado en lenguaje ensamblador.
+**4 en Línea** es un juego electrónico para dos jugadores basado en un microcontrolador **PIC16F887**. El tablero se representa en una **matriz LED de 8×8** controlada por un **MAX7219**. Se utilizan siete filas para el área de juego y ocho columnas. La línea restante de la matriz se reserva para indicar la columna seleccionada mediante un cursor. Toda la lógica del juego se ejecuta en el PIC, programado en lenguaje ensamblador.
 
 Las jugadas pueden ingresarse mediante dos métodos de control:
 
-- **Control físico:** un potenciómetro permite seleccionar una de las ocho columnas y un pulsador confirma la jugada.
+- **Control físico:** un potenciómetro conectado a la entrada analógica AN0 permite seleccionar una de las ocho columnas y un pulsador conectado a RB0 confirma la jugada.
 - **Control mediante computadora:** se utiliza una terminal serial para enviar comandos al PIC a través de la comunicación UART.
 
-Las fichas del jugador 1 permanecen encendidas y las del jugador 2 parpadean. Dos LED indican de quién es el turno. Cuando alguien gana, primero se activa el buzzer durante aproximadamente 2 segundos. Una vez finalizada la señal sonora, el servomotor SG90 mueve la bandera hacia el lado correspondiente al ganador. La bandera permanece en esa posición hasta que se reinicia el sistema mediante el pulsador de MCLR; al reiniciarse, vuelve a la posición central de 90°.
+Las fichas del jugador 1 permanecen encendidas y las del jugador 2 parpadean. Dos LED indican de quién es el turno. Cuando el PIC detecta una victoria, activa el buzzer durante aproximadamente 2 segundos. Una vez finalizada la señal sonora, el servomotor SG90 mueve la bandera hacia el lado correspondiente al ganador. La bandera permanece en esa posición hasta que se reinicia el sistema mediante MCLR; al reiniciarse, el servo vuelve a la posición central de 90°.
 
 ## 2. Alcance del proyecto
 
 **El sistema es capaz de:**
 
-- **Ejecutar una partida completa** entre dos jugadores, con alternancia de turnos y caída de fichas por gravedad.
-- **Detectar el final de la partida:** cuatro fichas alineadas horizontal, vertical o diagonalmente, o empate por tablero lleno.
+- **Ejecutar una partida** entre dos jugadores, con alternancia de turnos y caída de fichas por gravedad.
+- **Detectar una victoria:** cuatro fichas del mismo jugador alineadas horizontal, vertical o diagonalmente.
 - **Aceptar jugadas mediante controles físicos:** el potenciómetro selecciona una de las ocho columnas y el pulsador confirma la jugada.
 - **Aceptar comandos desde una computadora:** mediante una terminal serial conectada por UART se puede mover el cursor y confirmar una jugada.
-- **Visualizar el juego** en una matriz LED de 8×8 con el MAX7219 (SPI), utilizando una línea como indicador de la columna seleccionada y las siete filas restantes como área de juego.
+- **Visualizar el juego** en una matriz LED de 8×8 controlada por el MAX7219 mediante SPI.
 - **Indicar el turno** mediante dos LED.
 - **Señalizar al ganador** mediante el buzzer y la bandera accionada por el servomotor. Primero suena el buzzer durante aproximadamente 2 segundos y luego la bandera se mueve hacia el lado del ganador, donde permanece hasta el reinicio mediante MCLR.
 
@@ -164,7 +164,7 @@ La división se realiza mediante desplazamientos sucesivos a la derecha. La rest
 
 Timer0 se utiliza para generar el parpadeo de las fichas del jugador 2 y como base de tiempo para otras tareas temporizadas del sistema.
 
-Con $F_{osc}=4\text{ MHz}$, el ciclo de instrucción es:
+Con \(F_{osc}=4\text{ MHz}\), el ciclo de instrucción es:
 
 $$
 T_{inst}=\frac{4}{F_{osc}}=1\ \mu s
@@ -208,13 +208,7 @@ $$
 | Pulso a 90° | 1500 µs | 64036 | 0xFA24 |
 | Pulso a 180° | 2200 µs | 63336 | 0xF768 |
 
-La fase en bajo completa el período de 20 ms. Para el pulso central de 1,5 ms:
-
-$$
-T_{bajo}=20\text{ ms}-1,5\text{ ms}=18,5\text{ ms}
-$$
-
-La precarga correspondiente es:
+La fase en bajo utiliza una duración fija de 18,5 ms. Su precarga es:
 
 $$
 TMR1=65536-18500=47036=0xB7BC
@@ -222,11 +216,11 @@ $$
 
 La interrupción de Timer1 alterna entre la fase alta y la fase baja, recargando el valor correspondiente para mantener la señal de control.
 
-> Los valores de precarga son teóricos. Durante la implementación se deberá considerar el tiempo de latencia y ejecución de la rutina de interrupción, ya que introduce una diferencia entre el desbordamiento del temporizador y el cambio efectivo de estado de la salida. Los anchos de pulso deberán calibrarse mediante medición. Los valores de 0,8 a 2,2 ms son los utilizados en el firmware; el rango real puede variar según el servomotor.
+> La fase baja fija de 18,5 ms corresponde al complemento del pulso central de 1,5 ms. Por lo tanto, el período total varía según la posición seleccionada: aproximadamente 19,3 ms para el pulso de 0,8 ms, 20 ms para el de 1,5 ms y 20,7 ms para el de 2,2 ms. Los valores de precarga son teóricos; durante la implementación también debe considerarse el tiempo de latencia y ejecución de la rutina de interrupción.
 
 #### UART: velocidad de transmisión
 
-La comunicación asíncrona se configura a **9600 baudios**, con BRGH = 1 y $F_{osc}=4\text{ MHz}$.
+La comunicación asíncrona se configura a **9600 baudios**, con BRGH = 1 y \(F_{osc}=4\text{ MHz}\).
 
 El valor de SPBRG se calcula mediante:
 
@@ -236,14 +230,14 @@ $$
 
 $$
 SPBRG=\frac{4\times10^6}{16\cdot9600}-1
-=25,04\approx25
+\approx25
 $$
 
 La velocidad real obtenida es:
 
 $$
 Baud_{real}=\frac{4\times10^6}{16\cdot(25+1)}
-=9615\text{ bps}
+\approx9615\text{ bps}
 $$
 
 El error relativo es:
@@ -298,8 +292,6 @@ El parpadeo del jugador 2 se resuelve alternando la información enviada al MAX7
 #### Alimentación y masas
 
 El servomotor SG90 utiliza una alimentación regulada de 5 V independiente, proporcionada por una placa Arduino que se utiliza exclusivamente como fuente de alimentación y no participa en el control del juego. Esta alimentación independiente permite evitar que los picos de corriente del servo afecten el funcionamiento del PIC16F887. La masa de la placa Arduino debe conectarse en común con la masa del PIC y del resto del circuito.
-
-**[PENDIENTE: realizar una prueba de funcionamiento del sistema completo, verificando que los movimientos del servomotor no provoquen caídas de tensión ni reinicios del microcontrolador].**
 
 ## 4. Arquitectura de software
 
@@ -391,6 +383,7 @@ La configuración utilizada para el microcontrolador contempla los siguientes bi
 | `_BOREN_OFF` | Brown-out reset deshabilitado | Configuración utilizada en el firmware |
 | `_LVP_OFF` | Programación en bajo voltaje deshabilitada | Liberar RB3 y evitar reprogramaciones accidentales |
 | `_CP_OFF` | Protección de código deshabilitada | Permitir la lectura del programa |
+| `_WRT_OFF` | Protección de escritura deshabilitada | Permitir la escritura en la memoria de programa |
 
 ### 5.4. Periféricos internos utilizados
 
@@ -412,7 +405,7 @@ El desarrollo del proyecto se organiza en etapas para facilitar la implementaci�
 2. **Visualización:** inicialización del MAX7219 por SPI y encendido de la matriz LED.
 3. **Entradas físicas:** lectura del ADC con el potenciómetro y pulsador con interrupción y antirrebote.
 4. **Comunicación serial:** configuración de la UART y recepción de comandos desde una terminal serial.
-5. **Lógica del juego:** caída de fichas, alternancia de turnos y detección de victoria y empate.
+5. **Lógica del juego:** caída de fichas, alternancia de turnos y detección de victoria.
 6. **Temporización:** implementación del parpadeo del jugador 2 mediante Timer0.
 7. **Actuadores:** control del servomotor mediante Timer1 y activación del buzzer.
 8. **Integración y pruebas:** ejecución de partidas completas utilizando tanto el potenciómetro y el pulsador como los comandos enviados desde la computadora.
