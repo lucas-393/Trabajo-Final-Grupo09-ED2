@@ -7,7 +7,6 @@ Facultad de Ciencias Exactas, Físicas y Naturales · Universidad Nacional de C�
 
 Integrantes:
 
-
 **Docente:** Marcos Blasco
 
 ---
@@ -28,16 +27,14 @@ Integrantes:
 
 ## 1. Descripción del proyecto
 
-**4 en Línea** es un juego electrónico para dos jugadores basado en un microcontrolador **PIC16F887**. El tablero lógico de 6 filas × 7 columnas se muestra en una **matriz LED de 8×8** controlada por un **MAX7219**, y toda la lógica del juego (reglas, turnos, caída de fichas, detección de victoria y empate) se ejecuta en el PIC, programado en lenguaje ensamblador.
+**4 en Línea** es un juego electrónico para dos jugadores basado en un microcontrolador **PIC16F887**. El tablero se representa en una **matriz LED de 8×8** controlada por un **MAX7219**. Se utilizan 7 filas para el área de juego y 8 columnas. La línea restante de la matriz se reserva para indicar la columna seleccionada mediante un cursor. Toda la lógica del juego (reglas, turnos, caída de fichas, detección de victoria y empate) se ejecuta en el PIC, programado en lenguaje ensamblador.
 
-Las jugadas pueden ingresarse de dos maneras:
+Las jugadas pueden ingresarse mediante dos métodos de control:
 
-- **Control físico:** un potenciómetro selecciona la columna y un pulsador confirma la jugada.
-- **Control por computadora:** una interfaz gráfica en Python, conectada al PIC por UART, permite mover la selección a izquierda y derecha y confirmar la jugada.
+- **Control físico:** un potenciómetro permite seleccionar una de las ocho columnas y un pulsador confirma la jugada.
+- **Control mediante computadora:** se utiliza una terminal serial para enviar comandos al PIC a través de la comunicación UART.
 
-Las fichas del jugador 1 permanecen encendidas y las del jugador 2 parpadean. Dos LED indican de quién es el turno. Cuando alguien gana, un **servomotor SG90** mueve una bandera hacia el lado del ganador y un **buzzer** suena durante aproximadamente 2 segundos. Finalizada la señalización la bandera vuelve a su posición central de 90°
-
-El PIC es la única autoridad del sistema: la computadora solo envía comandos y recibe estados, pero nunca decide dónde cae una ficha ni evalúa victorias.
+Las fichas del jugador 1 permanecen encendidas y las del jugador 2 parpadean. Dos LED indican de quién es el turno. Cuando alguien gana, primero se activa el buzzer durante aproximadamente 2 segundos. Una vez finalizada la señal sonora, el servomotor SG90 mueve la bandera hacia el lado correspondiente al ganador. La bandera permanece en esa posición hasta que se reinicia el sistema mediante el pulsador de MCLR; al reiniciarse, vuelve a la posición central de 90°.
 
 ## 2. Alcance del proyecto
 
@@ -45,11 +42,21 @@ El PIC es la única autoridad del sistema: la computadora solo envía comandos y
 
 - **Ejecutar una partida completa** entre dos jugadores, con alternancia de turnos y caída de fichas por gravedad.
 - **Detectar el final de la partida:** cuatro fichas alineadas horizontal, vertical o diagonalmente, o empate por tablero lleno.
-- **Aceptar jugadas desde dos fuentes:** potenciómetro más pulsador, o interfaz Python por UART. El método activo es el de la última entrada que produjo un cambio efectivo en la selección.
-- **Visualizar el tablero** en una matriz LED de 8×8 con el MAX7219 (SPI), diferenciando a los jugadores por ficha fija y ficha parpadeante.
+- **Aceptar jugadas mediante controles físicos:** el potenciómetro selecciona una de las ocho columnas y el pulsador confirma la jugada.
+- **Aceptar comandos desde una computadora:** mediante una terminal serial conectada por UART se puede mover el cursor y confirmar una jugada.
+- **Visualizar el juego** en una matriz LED de 8×8 con el MAX7219 (SPI), utilizando una línea como indicador de la columna seleccionada y las siete filas restantes como área de juego.
 - **Indicar el turno** mediante dos LED.
-- **Señalizar al ganador** con la bandera del servomotor (0° o 180°) y el buzzer. El buzzer suena durante aproximadamente 2 segundos y luego la bandera vuelve a 90°.
-- **Comunicarse con la PC** por UART: recibe comandos (`L`, `R`, `D`) y envía información sobre el turno, la validez de las jugadas y el resultado.
+- **Señalizar al ganador** mediante el buzzer y la bandera accionada por el servomotor. Primero suena el buzzer durante aproximadamente 2 segundos y luego la bandera se mueve hacia el lado del ganador, donde permanece hasta el reinicio mediante MCLR.
+
+**Comandos de la terminal serial:**
+
+| Comando | Función |
+|---|---|
+| `L` | Mover el cursor una columna hacia la izquierda |
+| `R` | Mover el cursor una columna hacia la derecha |
+| `D` | Confirmar la jugada y soltar la ficha |
+
+Los comandos se envían como caracteres individuales en mayúscula. La selección no puede salir de los límites del tablero: la columna mínima es 0 y la máxima es 7.
 
 **El sistema NO es capaz de:**
 
@@ -66,7 +73,7 @@ flowchart TB
     subgraph ENTRADAS["ENTRADAS"]
         POT["Potenciómetro 10 kΩ"]
         BTN["Pulsador físico"]
-        PC["Interfaz Python"]
+        PC["Computadora / Terminal serial"]
     end
 
     subgraph CONTROL["UNIDAD CENTRAL"]
@@ -86,7 +93,7 @@ flowchart TB
 
     POT --> ADC
     BTN --> PIC
-    PC <-->|"CP2102 / UART"| UART
+    PC <-->|"UART"| UART
     ADC --> PIC
     UART --> PIC
     PIC --> LOG
@@ -103,8 +110,8 @@ El **PIC16F887** (DIP-40) es la unidad de control y se conecta con los demás bl
 
 - **Potenciómetro (RA0/AN0):** entrada analógica para elegir la columna.
 - **Pulsador (RB0/INT):** confirma la jugada mediante interrupción externa, con antirrebote.
+- **Comunicación UART (RC6/TX y RC7/RX):** permite recibir comandos desde una computadora mediante una terminal serial.
 - **MAX7219 (RC3/SCK, RC5/SDO, RD3/CS):** controla la matriz LED 8×8 por SPI.
-- **UART (RC6/TX, RC7/RX):** enlace con la PC a través del adaptador USB-UART CP2102.
 - **LED de turno (RD0 y RD1):** indican si juega el jugador 1 o el jugador 2.
 - **Buzzer (RD2):** señal sonora al detectarse un ganador.
 - **Servomotor SG90 (RC2):** señal de control de la bandera.
@@ -123,11 +130,13 @@ El **PIC16F887** (DIP-40) es la unidad de control y se conecta con los demás bl
 | 21 | RD2 | Buzzer |
 | 22 | RD3 | LOAD/CS del MAX7219 |
 | 24 | RC5/SDO | Datos hacia DIN del MAX7219 |
-| 25 | RC6/TX | UART hacia la PC |
-| 26 | RC7/RX | UART desde la PC |
+| 25 | RC6/TX | Transmisión UART hacia la PC |
+| 26 | RC7/RX | Recepción UART desde la PC |
 | 33 | RB0/INT | Pulsador físico |
 
 > La distribución corresponde al encapsulado DIP-40 del PIC16F887.
+
+**Conexión de la comunicación serial:** la transmisión de la computadora debe conectarse a RC7/RX del PIC y la recepción de la computadora a RC6/TX. Ambas interfaces deben compartir GND y utilizar niveles lógicos compatibles con el microcontrolador.
 
 **Esquemático del circuito:** [PENDIENTE: agregar imagen del circuito definitivo de Proteus].
 
@@ -139,17 +148,17 @@ El potenciómetro de 10 kΩ forma un divisor de tensión entre 0 V y 5 V, y su c
 
 El ADC utiliza como referencias de conversión VDD y VSS, por lo que, con una alimentación de 5 V, el rango de entrada corresponde aproximadamente a 0–5 V. Se configura el resultado con **justificación izquierda** y se utilizan los 8 bits más significativos almacenados en `ADRESH`, obteniendo un valor entre 0 y 255.
 
-Para obtener las 7 columnas del tablero:
+Para obtener las ocho columnas del tablero, el valor de `ADRESH` se divide por 32:
 
-```text
-columna = ADRESH / 37
-```
+$$
+\text{columna} = 7 - \frac{ADRESH}{32}
+$$
 
-| Columna | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
-|---|---|---|---|---|---|---|---|
-| ADRESH | 0–36 | 37–73 | 74–110 | 111–147 | 148–184 | 185–221 | 222–255 |
+La división se realiza mediante desplazamientos sucesivos a la derecha. La resta respecto de 7 invierte el sentido de selección para que el movimiento del potenciómetro coincida con la orientación del cursor.
 
-Para evitar que la selección oscile en los límites entre columnas se puede agregar histéresis o promediar muestras.
+| Columna | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|---|---|
+| ADRESH | 224–255 | 192–223 | 160–191 | 128–159 | 96–127 | 64–95 | 32–63 | 0–31 |
 
 #### Timer0: parpadeo y base de tiempo general
 
@@ -173,7 +182,7 @@ Se utiliza como base de tiempo mediante contadores por software:
 |---|---:|---:|
 | Parpadeo del jugador 2 (alternar estado) | 8 | ≈ 524 ms |
 | Activación del buzzer | 31 | ≈ 2,03 s |
-| Antirrebote del pulsador | 1 | ≈ 65,5 ms |
+| Antirrebote del pulsador | 3 | ≈ 196,6 ms |
 
 Esto supone un desbordamiento de Timer0 cada 65,536 ms.
 
@@ -183,9 +192,9 @@ El servo requiere una señal de aproximadamente **50 Hz**, equivalente a un per�
 
 | Ángulo | Ancho de pulso |
 |---:|---:|
-| 0° | 1 ms |
+| 0° | 0,8 ms |
 | 90° | 1,5 ms |
-| 180° | 2 ms |
+| 180° | 2,2 ms |
 
 Con prescaler 1:1, el temporizador tiene una resolución de 1 µs. La precarga se calcula mediante:
 
@@ -195,11 +204,11 @@ $$
 
 | Fase | Duración | Precarga (decimal) | TMR1H:TMR1L |
 |---|---:|---:|---|
-| Pulso a 0° | 1 ms | 64536 | 0xFC18 |
-| Pulso a 90° | 1,5 ms | 64036 | 0xFA24 |
-| Pulso a 180° | 2 ms | 63536 | 0xF830 |
+| Pulso a 0° | 800 µs | 64736 | 0xFCE0 |
+| Pulso a 90° | 1500 µs | 64036 | 0xFA24 |
+| Pulso a 180° | 2200 µs | 63336 | 0xF768 |
 
-La fase en bajo completa el período de 20 ms. Por ejemplo, para un pulso de 1,5 ms:
+La fase en bajo completa el período de 20 ms. Para el pulso central de 1,5 ms:
 
 $$
 T_{bajo}=20\text{ ms}-1,5\text{ ms}=18,5\text{ ms}
@@ -211,9 +220,9 @@ $$
 TMR1=65536-18500=47036=0xB7BC
 $$
 
-La interrupción de Timer1 alterna entre la fase alta y la fase baja, recargando el valor correspondiente para mantener el período de la señal.
+La interrupción de Timer1 alterna entre la fase alta y la fase baja, recargando el valor correspondiente para mantener la señal de control.
 
-> Los valores de precarga son teóricos. Durante la implementación se deberá considerar el tiempo de latencia y ejecución de la rutina de interrupción, ya que introduce una diferencia entre el desbordamiento del temporizador y el cambio efectivo de estado de la salida. Los anchos de pulso deberán calibrarse mediante medición. Los valores de 1 a 2 ms son habituales para el SG90, aunque el rango real puede variar entre unidades.
+> Los valores de precarga son teóricos. Durante la implementación se deberá considerar el tiempo de latencia y ejecución de la rutina de interrupción, ya que introduce una diferencia entre el desbordamiento del temporizador y el cambio efectivo de estado de la salida. Los anchos de pulso deberán calibrarse mediante medición. Los valores de 0,8 a 2,2 ms son los utilizados en el firmware; el rango real puede variar según el servomotor.
 
 #### UART: velocidad de transmisión
 
@@ -226,7 +235,8 @@ SPBRG=\frac{F_{osc}}{16\cdot Baud}-1
 $$
 
 $$
-SPBRG=\frac{4\times10^6}{16\cdot9600}-1=25,04\approx25
+SPBRG=\frac{4\times10^6}{16\cdot9600}-1
+=25,04\approx25
 $$
 
 La velocidad real obtenida es:
@@ -245,6 +255,16 @@ $$
 
 La configuración utiliza 8 bits de datos, sin paridad y un bit de parada (8N1).
 
+La computadora envía caracteres individuales mediante una terminal serial. El PIC recibe cada carácter por RC7/RX y lo procesa en el lazo principal.
+
+| Comando recibido | Acción realizada |
+|---|---|
+| `L` | Disminuye la columna seleccionada en una unidad |
+| `R` | Aumenta la columna seleccionada en una unidad |
+| `D` | Activa la bandera de disparo para soltar la ficha |
+
+La selección se mantiene dentro del rango de columnas de 0 a 7. Los comandos deben enviarse en mayúscula.
+
 #### SPI con el MAX7219
 
 El módulo MSSP del PIC funciona como maestro SPI con una frecuencia de reloj de:
@@ -260,41 +280,44 @@ Los registros de configuración inicial del MAX7219 son:
 | Registro | Dirección | Valor inicial |
 |---|---:|---|
 | Decode mode | 0x09 | 0x00 (sin decodificación) |
-| Intensity | 0x0A | [PENDIENTE: definir brillo inicial] |
+| Intensity | 0x0A | 0x08 (brillo medio) |
 | Scan limit | 0x0B | 0x07 (8 filas) |
 | Shutdown | 0x0C | 0x01 (operación normal) |
 | Display test | 0x0F | 0x00 |
 
 #### Representación del tablero
 
-El tablero lógico tiene 6 filas y 7 columnas. Cada posición puede encontrarse vacía u ocupada por una ficha de alguno de los dos jugadores.
+El tablero lógico utiliza 7 filas y 8 columnas. Cada posición puede encontrarse vacía u ocupada por una ficha de alguno de los dos jugadores.
 
-La información del tablero se almacena en memoria RAM y se utiliza para determinar la posición de las fichas y actualizar la matriz LED.
+La información del tablero se almacena en memoria RAM, utilizando 64 bytes para representar las 8×8 posiciones de la matriz. La primera línea se reserva para representar el cursor y las siete filas restantes corresponden al área de juego.
 
-En la matriz de 8×8 se utilizan 6 filas y 7 columnas (42 LED). Las dos filas restantes y la columna restante permanecen apagadas.
+La matriz LED se actualiza mediante el MAX7219, enviando los patrones correspondientes a cada fila. El cursor indica la columna en la que caerá la siguiente ficha.
 
 El parpadeo del jugador 2 se resuelve alternando la información enviada al MAX7219: en una fase se muestran las fichas de ambos jugadores y en la otra solamente las del jugador 1.
 
 #### Alimentación y masas
 
-El PIC y el módulo MAX7219 se alimentan desde una fuente de 5 V, cuya capacidad de corriente debe ser suficiente para ambos bloques.
-
-El servomotor SG90 utiliza una fuente regulada de 5 V independiente, debido a los picos de corriente que se producen durante su movimiento. Las masas del PIC, MAX7219, servo y CP2102 se conectan en común.
+El servomotor SG90 utiliza una alimentación regulada de 5 V independiente, proporcionada por una placa Arduino que se utiliza exclusivamente como fuente de alimentación y no participa en el control del juego. Esta alimentación independiente permite evitar que los picos de corriente del servo afecten el funcionamiento del PIC16F887. La masa de la placa Arduino debe conectarse en común con la masa del PIC y del resto del circuito.
 
 **[PENDIENTE: realizar una prueba de funcionamiento del sistema completo, verificando que los movimientos del servomotor no provoquen caídas de tensión ni reinicios del microcontrolador].**
 
 ## 4. Arquitectura de software
 
-El firmware está escrito en **lenguaje ensamblador (MPASM)** y sigue una arquitectura manejada por interrupciones, con un lazo principal que lee el ADC y administra el estado del juego.
+El firmware está escrito en **lenguaje ensamblador (MPASM)** y sigue una arquitectura manejada por interrupciones, con un lazo principal que administra los métodos de selección, procesa las jugadas y actualiza el estado del juego.
 
 ### 4.1. Lazo principal
 
 El programa principal realiza las siguientes tareas:
 
-1. Convierte el valor del ADC en una columna candidata.
-2. Actualiza la columna seleccionada si el potenciómetro produjo un cambio efectivo.
-3. Procesa los comandos recibidos por UART, almacenados previamente desde la rutina de interrupción.
-4. Si hay una jugada confirmada, la valida, ubica la ficha, evalúa victoria o empate, cambia de turno y actualiza la matriz LED.
+1. Comprueba si la partida finalizó. En ese caso, mantiene el juego bloqueado y continúa actualizando la matriz.
+2. Comprueba si existe una jugada confirmada mediante el pulsador físico o el comando recibido por UART.
+3. Valida la jugada y ubica la ficha en la posición disponible más baja de la columna seleccionada.
+4. Evalúa si existe una victoria y, si corresponde, inicia la secuencia de finalización.
+5. Si no hay un ganador, cambia el turno y actualiza los indicadores correspondientes.
+6. Lee el método de control activo:
+   - Si está seleccionado el potenciómetro, realiza una conversión ADC y actualiza la columna.
+   - Si está seleccionado el modo UART, procesa el último comando recibido desde la computadora.
+7. Actualiza la matriz LED para mostrar el tablero y el cursor.
 
 ### 4.2. Gestión de interrupciones
 
@@ -303,63 +326,34 @@ Como el PIC16F887 dispone de un único vector de interrupción, la rutina de ser
 | Prioridad | Fuente | Tarea |
 |---:|---|---|
 | 1 | TMR1IF | Generación del pulso del servomotor |
-| 2 | TMR0IF | Parpadeo del jugador 2, antirrebote y temporización del buzzer 2 s |
+| 2 | TMR0IF | Parpadeo del jugador 2, antirrebote y temporización del buzzer |
 | 3 | INTF (RB0) | Confirmación de jugada por pulsador |
-| 4 | RCIF | Recepción de comandos desde la PC |
+| 4 | RCIF | Recepción de comandos desde la computadora por UART |
 
-La prioridad indicada es el orden de atención previsto dentro de la ISR. La rutina deberá identificar y atender correctamente las banderas pendientes de cada periférico.
+La prioridad indicada corresponde al orden de consulta dentro de la ISR. La rutina verifica las banderas de interrupción para identificar el evento pendiente y ejecutar su correspondiente subrutina.
 
 ### 4.3. Control compartido de la selección
 
-Los controles físico y virtual comparten una única variable que almacena la columna seleccionada.
+Los controles físico y mediante computadora comparten una única variable que almacena la columna seleccionada.
 
-La selección cambia de método de control cuando una entrada produce un cambio efectivo:
+La variable `METODO_ACTIVO` determina cuál de los dos métodos se utiliza para modificar la selección:
 
-- Si el potenciómetro modifica la columna seleccionada, el control físico pasa a ser el método activo y los comandos de izquierda y derecha enviados desde la PC dejan de modificar la selección.
-- Si los comandos de izquierda o derecha enviados desde la PC modifican la columna, el control por computadora pasa a ser el método activo y el potenciómetro deja de modificar la selección.
+- **Modo físico:** cuando se presiona el pulsador RB0, se activa el método de control mediante potenciómetro y pulsador. El potenciómetro determina la columna y el pulsador confirma la jugada.
+- **Modo UART:** cuando se recibe un carácter desde la computadora, se activa el método de control mediante terminal serial. Los comandos `L` y `R` modifican la columna seleccionada, mientras que `D` confirma la jugada.
 
-El método activo se mantiene hasta que el otro control produzca un cambio efectivo en la selección.
+El método activo se mantiene hasta que se recibe una entrada del otro método de control.
 
-Ambos métodos utilizan el mismo proceso de confirmación y validación de jugadas: el pulsador físico mediante RB0/INT y el botón de disparo de la interfaz de Python mediante UART.
+Ambos métodos comparten la misma lógica de juego y utilizan la misma variable de confirmación de jugada, por lo que la validación, caída de fichas, detección de victoria y cambio de turno son independientes del método de entrada utilizado.
 
-### 4.4. Protocolo UART
+### 4.4. Finalización de la partida
 
-Los comandos enviados desde la interfaz de Python son caracteres ASCII terminados en salto de línea.
+Cuando el PIC detecta una victoria, determina qué jugador ganó y ejecuta la siguiente secuencia:
 
-| Comando | Descripción |
-|---|---|
-| `L` | Mover la selección a la izquierda |
-| `R` | Mover la selección a la derecha |
-| `D` | Confirmar la jugada |
-
-El PIC responde con información sobre el jugador del turno, la aceptación o el rechazo de una jugada y el resultado de la partida.
-
-**[PENDIENTE: definir el formato exacto de los mensajes de respuesta del PIC y los valores utilizados para representar cada estado].**
-
-La comunicación utiliza 9600 baudios, 8 bits de datos, sin paridad y un bit de parada (8N1).
-
-### 4.5. Interfaz de Python
-
-La aplicación gráfica se desarrolla en Python y utiliza PySerial para la comunicación con el PIC a través del puerto serie.
-
-La interfaz dispone de tres botones:
-
-- **Izquierda:** envía el comando `L`.
-- **Derecha:** envía el comando `R`.
-- **Disparar:** envía el comando `D`.
-
-También muestra el turno actual y el resultado de la partida. La computadora no representa el tablero ni ejecuta las reglas del juego: únicamente permite ingresar comandos y visualizar la información recibida desde el microcontrolador.
-
-### 4.6. Finalización de la partida
-
-Cuando el PIC detecta una victoria, determina qué jugador ganó y ejecuta la señalización correspondiente:
-
-- El servomotor mueve la bandera hacia la posición del jugador ganador.
-- El buzzer se activa durante aproximadamente 2 segundos.
-- Finalizado ese tiempo, el buzzer se apaga y la bandera vuelve a la posición central de 90°.
-- El juego queda bloqueado y no acepta nuevas jugadas hasta que se realice un reinicio mediante MCLR.
-
-En caso de empate, el PIC informa el resultado a través de la comunicación UART para que sea mostrado en la interfaz de Python. No se realiza una señalización específica mediante el servomotor.
+1. El buzzer se activa durante aproximadamente 2 segundos.
+2. Finalizado ese tiempo, el buzzer se apaga.
+3. El servomotor mueve la bandera hacia el lado correspondiente al jugador ganador.
+4. La bandera permanece en esa posición y el juego queda bloqueado, sin aceptar nuevas jugadas.
+5. La bandera vuelve a la posición central de 90° únicamente cuando se reinicia el sistema mediante MCLR.
 
 ## 5. Especificaciones eléctricas, alimentación y entorno
 
@@ -371,7 +365,7 @@ En caso de empate, el PIC informa el resultado a través de la comunicación UAR
 | Alimentación PIC + MAX7219 | Fuente de 5 V con corriente suficiente para ambos |
 | Alimentación del servo | Fuente regulada de 5 V independiente |
 | Referencia de masa | GND común entre todos los bloques |
-| Consumo medido | [PENDIENTE   |
+| Consumo medido | [PENDIENTE: completar con medición] |
 
 El consumo del sistema varía con la cantidad de LED encendidos en la matriz, el brillo configurado en el MAX7219 y el movimiento del servomotor.
 
@@ -381,21 +375,22 @@ El consumo del sistema varía con la cantidad de LED encendidos en la matriz, el
 |---|---|
 | MPLAB X IDE + MPASM | Desarrollo y ensamblado del firmware |
 | Bootloader AN1310 | Carga del programa en el PIC |
-| Python + PySerial | Interfaz gráfica y comunicación serie |
+| Terminal serial | Envío de comandos al microcontrolador mediante UART |
 | Proteus | Simulación del circuito |
 | Git / GitHub | Control de versiones y trabajo colaborativo |
 
 ### 5.3. Configuración de bits
 
-La configuración prevista para el microcontrolador contempla los siguientes bits:
+La configuración utilizada para el microcontrolador contempla los siguientes bits:
 
-| Bit | Configuración prevista | Motivo |
+| Bit | Configuración | Motivo |
 |---|---|---|
 | Oscilador `_FOSC_XT` | Cristal externo de 4 MHz | Base de tiempo para UART, SPI y temporizadores |
 | `_WDTE_OFF` | Watchdog deshabilitado | Evitar reinicios involuntarios |
 | `_MCLRE_ON` | MCLR habilitado | Permitir el reinicio manual del sistema |
-| `_BOREN_ON` | Brown-out reset habilitado | Reinicio ante caídas de tensión |
+| `_BOREN_OFF` | Brown-out reset deshabilitado | Configuración utilizada en el firmware |
 | `_LVP_OFF` | Programación en bajo voltaje deshabilitada | Liberar RB3 y evitar reprogramaciones accidentales |
+| `_CP_OFF` | Protección de código deshabilitada | Permitir la lectura del programa |
 
 ### 5.4. Periféricos internos utilizados
 
@@ -405,6 +400,7 @@ La configuración prevista para el microcontrolador contempla los siguientes bit
 - **MSSP (SPI maestro):** comunicación con el MAX7219.
 - **EUSART:** modo asíncrono a 9600 baudios (SPBRG = 25, BRGH = 1).
 - **Interrupción externa INT (RB0):** pulsador de confirmación.
+- **Interrupción de recepción UART (RCIF):** recepción de comandos enviados desde la computadora.
 
 ## 6. Proceso de integración y desarrollo
 
@@ -414,12 +410,12 @@ El desarrollo del proyecto se organiza en etapas para facilitar la implementaci�
 
 1. **Validación del hardware base:** oscilador, reset y alimentación del PIC16F887.
 2. **Visualización:** inicialización del MAX7219 por SPI y encendido de la matriz LED.
-3. **Entradas:** lectura del ADC con el potenciómetro y pulsador con interrupción y antirrebote.
-4. **Lógica del juego:** caída de fichas, alternancia de turnos y detección de victoria y empate.
-5. **Temporización:** implementación del parpadeo del jugador 2 mediante Timer0.
-6. **Comunicación:** UART con comandos y respuestas, e integración de la interfaz de Python.
+3. **Entradas físicas:** lectura del ADC con el potenciómetro y pulsador con interrupción y antirrebote.
+4. **Comunicación serial:** configuración de la UART y recepción de comandos desde una terminal serial.
+5. **Lógica del juego:** caída de fichas, alternancia de turnos y detección de victoria y empate.
+6. **Temporización:** implementación del parpadeo del jugador 2 mediante Timer0.
 7. **Actuadores:** control del servomotor mediante Timer1 y activación del buzzer.
-8. **Integración y pruebas:** ejecución de partidas completas utilizando ambos métodos de control.
+8. **Integración y pruebas:** ejecución de partidas completas utilizando tanto el potenciómetro y el pulsador como los comandos enviados desde la computadora.
 
 ## 7. Ensayos, pruebas y resultados
 
@@ -427,14 +423,13 @@ El plan de pruebas contempla la validación individual de cada subsistema y, fin
 
 | Subsistema | Prueba | Estado | Evidencia |
 |---|---|:---:|---|
-| ADC | Selección correcta de las 7 columnas | ☐ | — |
+| ADC | Selección correcta de las 8 columnas | ☐ | — |
 | Pulsador | Confirmación y antirrebote | ☐ | — |
-| Selección | Cambio entre control físico y por PC | ☐ | — |
+| Selección | Mediante potenciómetro y confirmación mediante pulsador | ☐ | — |
 | Lógica del juego | Caída de fichas y alternancia de turnos | ☐ | — |
 | Victoria | Alineaciones horizontales, verticales y diagonales | ☐ | — |
 | Empate | Tablero completo sin ganador | ☐ | — |
 | MAX7219 | Visualización de fichas y parpadeo | ☐ | — |
-| UART | Recepción de comandos y envío de estados | ☐ | — |
 | Timer0 | Parpadeo del jugador 2 | ☐ | — |
 | Timer1 | Señal del servo (medición de 50 Hz y anchos de pulso) | ☐ | — |
 | Actuadores | Movimiento de bandera y activación del buzzer | ☐ | — |
@@ -470,7 +465,6 @@ La organización prevista para los archivos del proyecto es la siguiente:
 ├── README.md
 ├── src/
 │   └── Firmware/          # Fuentes del PIC16F887 (.asm)
-├── interfaz/              # Código de la interfaz Python
 ├── sim/                   # Simulaciones de Proteus
 ├── hardware/
 │   ├── Esquematicos/
