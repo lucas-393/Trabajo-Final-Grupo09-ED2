@@ -434,11 +434,9 @@ El plan de pruebas contempla la validación individual de cada subsistema y, fin
 | Alimentación | Funcionamiento estable durante el movimiento del servo | ☐ | — |
 | Sistema completo | Partida completa de punta a punta | ☐ | — |
 
-**Hardware ensamblado:** [PENDIENTE: agregar fotografía del montaje].
+**Hardware ensamblado:** <img width="1600" height="900" alt="image" src="https://github.com/user-attachments/assets/008c2830-df75-4d52-aa37-ee93279e498f" />
 
-**Simulación en Proteus:** [PENDIENTE: agregar captura de la simulación].
-
-**Resultados de las pruebas:** [PENDIENTE: agregar evidencias, mediciones y comentarios de los ensayos realizados].
+**Simulación en Proteus:** <img width="1106" height="822" alt="image" src="https://github.com/user-attachments/assets/f928ea2f-2a5e-4715-b4b5-d78875a443c6" />
 
 La aceptación final exige que las entradas, el procesamiento, la visualización y los actuadores funcionen en conjunto durante una partida completa, incluyendo la detección del resultado y el bloqueo posterior a una victoria.
 
