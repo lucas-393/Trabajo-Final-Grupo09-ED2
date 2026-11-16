@@ -216,7 +216,7 @@ $$
  
 La interrupción de Timer1 alterna entre la fase alta y la fase baja, recargando el valor correspondiente para mantener la señal de control.
  
-> La fase baja fija de 18,5 ms corresponde al complemento del pulso central de 1,5 ms. Por lo tanto, el período total varía según la posición seleccionada: aproximadamente 19,3 ms para el pulso de 0,8 ms, 20 ms para el de 1,5 ms y 20,7 ms para el de 2,2 ms. Los valores de precarga son teóricos; durante la implementación también debe considerarse el tiempo de latencia y ejecución de la rutina de interrupción.
+> La fase baja fija de 18,5 ms corresponde al complemento del pulso central de 1,5 ms. Por lo tanto, el período total varía según la posición seleccionada: aproximadamente 19,3 ms para el pulso de 0,8 ms, 20 ms para el de 1,5 ms y 20,7 ms para el de 2,2 ms. Los valores de precarga son teóricos;
  
 #### UART: velocidad de transmisión
  
