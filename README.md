@@ -5,7 +5,7 @@ Facultad de Ciencias Exactas, Físicas y Naturales · Universidad Nacional de C�
  
 **Grupo 09**
  
-**Integrantes (Grupo 09):**  
+**Integrantes:**  
 * Belloso Rossi Rodrigo
 * Curtino Velaz Santiago
 * Guevara Lucas Daniel
