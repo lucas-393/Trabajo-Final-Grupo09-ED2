@@ -214,7 +214,7 @@ $$
  
 La interrupción de Timer1 alterna entre la fase alta y la fase baja, recargando el valor correspondiente para mantener la señal de control.
  
-> La fase baja fija de 18,5 ms corresponde al complemento del pulso central de 1,5 ms. Por lo tanto, el período total varía según la posición seleccionada: aproximadamente 19,3 ms para el pulso de 0,8 ms, 20 ms para el de 1,5 ms y 20,7 ms para el de 2,2 ms. Los valores de precarga son teóricos;
+> La fase baja fija de 18,5 ms corresponde al complemento del pulso central de 1,5 ms. Por lo tanto, el período total varía según la posición seleccionada: aproximadamente 19,3 ms para el pulso de 0,8 ms, 20 ms para el de 1,5 ms y 20,7 ms para el de 2,2 ms. Los valores de precarga son teóricos.
  
 #### UART: velocidad de transmisión
  
@@ -282,8 +282,8 @@ Los registros de configuración inicial del MAX7219 son:
 El tablero lógico utiliza 7 filas y 8 columnas. Cada posición puede encontrarse vacía u ocupada por una ficha de alguno de los dos jugadores.
  
 La información del tablero se almacena en memoria RAM, utilizando 64 bytes para representar las 8×8 posiciones de la matriz. La primera línea se reserva para representar el cursor y las siete filas restantes corresponden al área de juego.
- 
-La matriz LED se actualiza mediante el MAX7219, enviando un byte por cada registro del MAX7219. Cada registro corresponde a una columna del tablero: el bit del cursor y los siete bits del área de juego. El cursor indica la columna en la que caerá la siguiente ficha.
+
+La matriz LED se actualiza por SPI enviando un byte por cada registro del MAX7219. Cada registro corresponde a una columna del tablero: el bit del cursor y los siete bits del área de juego. El cursor indica la columna en la que caerá la siguiente ficha.
  
 El parpadeo del jugador 2 se resuelve alternando la información enviada al MAX7219: en una fase se muestran las fichas de ambos jugadores y en la otra solamente las del jugador 1.
  
