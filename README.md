@@ -138,8 +138,6 @@ El **PIC16F887** (DIP-40) es la unidad de control y se conecta con los demás bl
  
 > La distribución corresponde al encapsulado DIP-40 del PIC16F887.
  
-**Conexión de la comunicación serial:** la transmisión de la computadora debe conectarse a RC7/RX del PIC y la recepción de la computadora a RC6/TX. Ambas interfaces deben compartir GND y utilizar niveles lógicos compatibles con el microcontrolador.
- 
 ### 3.3. Descripción del circuito y consideraciones de diseño
  
 #### ADC: potenciómetro a columna
