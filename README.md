@@ -164,7 +164,7 @@ La división se realiza mediante desplazamientos sucesivos a la derecha. La rest
 
 Timer0 se utiliza para generar el parpadeo de las fichas del jugador 2 y como base de tiempo para otras tareas temporizadas del sistema.
 
-Con \(F_{osc}=4\text{ MHz}\), el ciclo de instrucción es:
+Con $$F_{osc}=4\text{ MHz}$$, el ciclo de instrucción es:
 
 $$
 T_{inst}=\frac{4}{F_{osc}}=1\ \mu s
