@@ -118,6 +118,7 @@ El **PIC16F887** (DIP-40) es la unidad de control y se conecta con los demás bl
 - **Buzzer (RD2):** señal sonora al detectarse un ganador.
 - **Servomotor SG90 (RC2):** señal de control de la bandera.
 - **Cristal de 4 MHz (OSC1/OSC2)** con capacitores de 22 pF a GND, y **reset** por MCLR.
+  
 | Pin físico | Señal | Función |
 |---:|---|---|
 | 1 | MCLR | Reinicio del sistema |
