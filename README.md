@@ -5,12 +5,12 @@ Facultad de Ciencias Exactas, Físicas y Naturales · Universidad Nacional de C�
 
 **Grupo 09**
 
-Integrantes:
-Belloso Rossi Rodrigo
-Curtino Velaz Santiago
-Guevara Lucas Daniel
-Ibarra Giovani Emmanuel
-Soto Debesa Trinidad Zoe
+**Integrantes (Grupo 09):**  
+* Belloso Rossi Rodrigo
+* Curtino Velaz Santiago
+* Guevara Lucas Daniel
+* Ibarra Giovani Emmanuel
+* Soto Debesa Trinidad Zoe  
 **Docente:** Ing. Marcos J. Blasco.
 
 ---
